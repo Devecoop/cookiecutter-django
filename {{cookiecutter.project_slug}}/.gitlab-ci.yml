@@ -1,6 +1,7 @@
 stages:
   - lint
   - test
+  - deploy
 
 variables:
   POSTGRES_USER: '{{ cookiecutter.project_slug }}'
@@ -50,3 +51,13 @@ pytest:
     - pytest
   {%- endif %}
 
+deploy:
+  stage: deploy
+  when: manual
+  only:
+   - master
+  image: docker:git
+  script:
+    - apk update && apk add sshpass
+    - export SSHPASS=$SSH_PASS
+    - sshpass -e ssh -p$SSH_PORT -o stricthostkeychecking=no -x $SSH_USER@$SSH_HOST $SSH_SCRIPT

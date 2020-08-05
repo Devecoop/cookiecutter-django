@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 volumes:
   local_postgres_data: {}
@@ -23,7 +23,7 @@ services:
       - ./.envs/.local/.postgres
     ports:
       - "8000:8000"
-    command: /start
+    command: ["tail", "-f", "/dev/null"]
 
   postgres:
     build:

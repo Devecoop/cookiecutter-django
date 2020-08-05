@@ -1,12 +1,14 @@
-version: '3'
+version: '3.4'
 
-volumes:
-  production_postgres_data: {}
-  production_postgres_data_backups: {}
-  production_traefik: {}
+x-logging:
+  &fluentd-logging
+  driver: fluentd
+  options:
+    fluentd-address: localhost:24224
 
 services:
   django:{% if cookiecutter.use_celery == 'y' %} &django{% endif %}
+    restart: always
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
@@ -18,19 +20,61 @@ services:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     command: /start
+    volumes:
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/static
+        target: /app/staticfiles
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/media
+        target: /app/media
+    logging: *fluentd-logging
+
+  nginx:
+    restart: always
+    build:
+      context: ./compose/production/nginx/
+    image: {{ cookiecutter.project_slug }}_production_nginx
+    depends_on:
+      - django
+    volumes:
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/static
+        target: /app/static
+        read_only: true
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/media
+        target: /app/media
+        read_only: true
+    logging: *fluentd-logging
+    networks:
+      - default
+      - web
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:{{ cookiecutter.project_slug }}.desarrollo.devecoop.com"
+      - "traefik.port=80"
+      - "traefik.protocol=http"
 
   postgres:
+    restart: always
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
     image: {{ cookiecutter.project_slug }}_production_postgres
     volumes:
-      - production_postgres_data:/var/lib/postgresql/data
-      - production_postgres_data_backups:/backups
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/postgres
+        target: /var/lib/postgresql/data
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/postgres-backups
+        target: /backups
     env_file:
       - ./.envs/.production/.postgres
+    logging: *fluentd-logging
 
   traefik:
+    restart: always
     build:
       context: .
       dockerfile: ./compose/production/traefik/Dockerfile
@@ -38,32 +82,41 @@ services:
     depends_on:
       - django
     volumes:
-      - production_traefik:/etc/traefik/acme
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/traefik
+        target: /etc/traefik/acme
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
       {%- if cookiecutter.use_celery == 'y' %}
       - "0.0.0.0:5555:5555"
       {%- endif %}
+    logging: *fluentd-logging
 
   redis:
+    restart: always
     image: redis:5.0
+    logging: *fluentd-logging
+
   {%- if cookiecutter.use_celery == 'y' %}
 
   celeryworker:
     <<: *django
     image: {{ cookiecutter.project_slug }}_production_celeryworker
     command: /start-celeryworker
+    logging: *fluentd-logging
 
   celerybeat:
     <<: *django
     image: {{ cookiecutter.project_slug }}_production_celerybeat
     command: /start-celerybeat
+    logging: *fluentd-logging
 
   flower:
     <<: *django
     image: {{ cookiecutter.project_slug }}_production_flower
     command: /start-flower
+    logging: *fluentd-logging
 
   {%- endif %}
 
@@ -75,5 +128,13 @@ services:
     env_file:
       - ./.envs/.production/.django
     volumes:
-      - production_postgres_data_backups:/backups
+      - type: bind
+        source: /srv/deploys/{{ cookiecutter.project_slug }}-data/postgres-backups
+        target: /backups
+        read_only: true
+    logging: *fluentd-logging
   {%- endif %}
+
+networks:
+  web:
+    external: true

@@ -69,7 +69,9 @@ celerybeat-schedule
 
 # Environments
 .venv
+.env
 venv/
+env/
 ENV/
 
 # Rope project settings
@@ -332,6 +334,9 @@ tags
 pyvenv.cfg
 pip-selfcheck.json
 .env
+.envs/*
+!.envs/.local/
+!.envs/.production/
 {% endif %}
 
 ### Project template
@@ -345,3 +350,8 @@ MailHog
 {% if cookiecutter.use_docker == 'y' %}
 .ipython/
 {%- endif %}
+
+# Auto-generated files
+{{ cookiecutter.project_slug }}/static/css/*.css
+{{ cookiecutter.project_slug }}/static/css/*.min.css
+{{ cookiecutter.project_slug }}/static/js/*.min.js

@@ -47,7 +47,7 @@ DJANGO_GCP_STORAGE_BUCKET_NAME=
 {% endif %}
 # django-allauth
 # ------------------------------------------------------------------------------
-DJANGO_ACCOUNT_ALLOW_REGISTRATION=True
+DJANGO_ACCOUNT_ALLOW_REGISTRATION=False
 
 # Gunicorn
 # ------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ WEB_CONCURRENCY=4
 {% if cookiecutter.use_sentry == 'y' %}
 # Sentry
 # ------------------------------------------------------------------------------
-SENTRY_DSN=
+SENTRY_DSN=https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXx@sentry.desarrollo.devecoop.com/6
 {% endif %}
 
 # Redis

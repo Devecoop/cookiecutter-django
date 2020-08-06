@@ -16,7 +16,7 @@ For more details about files and settings check the official documentation: http
 
 - Create the `<name-of-the-app>` app with `python manage.py startapp`
 - Move `<name-of-the-app>` directory to `<project_slug>` directory
-- Rdit `<project_slug>/<name-of-the-app>/apps.py` and
+- Edit `<project_slug>/<name-of-the-app>/apps.py` and
 change `name = "<name-of-the-app>"` to `name = "<project_slug>.<name-of-the-app>"`
 - Add `"<project_slug>.<name-of-the-app>.apps.<NameOfTheAppConfigClass>"`, on your LOCAL_APPS on `config/settings/base.py`
 

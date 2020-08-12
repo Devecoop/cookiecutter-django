@@ -10,6 +10,7 @@ For more details about files and settings check the official documentation: http
   - Create a python3 environment: `python3 -m venv env`
   - Enter this environment: `source env/bin/activate`
   - Install dependencies: `pip install -r requirements/vscode.txt`
+  - Install pre-commit script: `pre-commit install`
 - With docker environment: https://github.com/pydanny/cookiecutter-django/issues/2580
 
 ## Create new django app
